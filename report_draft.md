@@ -67,7 +67,7 @@ Each December from 2013 to 2024, we define an eligible investment set using five
 
 F1 ensures there is sufficient return history to estimate the covariance matrix reliably. F3 screens out illiquid stocks whose prices rarely change, as a high fraction of zero returns inflates estimated volatility artificially. F4 ensures consistency with Part II: every firm in the universe has at least some carbon disclosure history, so the universe used for the financial analysis is the same as the one used for the carbon analysis. F5 removes firms that no longer trade.
 
-The eligible universe grows from 812 firms in 2013 to over 1,150 by the early 2020s. The growth is mainly driven by F4: as sustainability disclosure requirements spread, more firms began reporting emissions data, progressively expanding the eligible set. The complete year-by-year count is in Appendix A.
+The eligible universe grows from 813 firms in 2013 to over 1,150 by the early 2020s. The growth is mainly driven by F4: as sustainability disclosure requirements spread, more firms began reporting emissions data, progressively expanding the eligible set. The complete year-by-year count is in Appendix A.
 
 ---
 
@@ -87,7 +87,7 @@ where $\text{RI}_{i,t}$ is the total return index of firm $i$ in month $t$. Any 
 
 ### 3.2 Covariance Matrix Estimation
 
-For each formation year $Y$, the sample covariance matrix is estimated from the 120-month return history ending in December $Y$ of all eligible firms. Before computing the covariance matrix, any remaining missing monthly return is replaced by the cross-sectional mean return for that month — the average of all firms that had a valid return in that period. This imputation preserves the full time dimension without discarding any months and avoids biasing the covariance estimates by treating missing observations as zero returns. No shrinkage or factor model is applied.
+For each formation year $Y$, the sample covariance matrix is estimated from the 120-month return history ending in December $Y$ of all eligible firms. Before computing the covariance matrix, any remaining missing monthly return is replaced by the cross-sectional mean return for that month — the average of all firms that had a valid return in that period. This imputation preserves the full time dimension without discarding any months and avoids biasing the covariance estimates by treating missing observations as zero returns. No shrinkage or factor model is applied. The covariance matrix is estimated using the maximum-likelihood estimator, dividing by $T$ rather than $T-1$, consistent with the project specification.
 
 ### 3.3 Minimum-Variance Portfolio
 
@@ -99,7 +99,7 @@ $$\text{subject to} \quad \boldsymbol{1}^\top \boldsymbol{\alpha} = 1, \quad \bo
 
 where $\boldsymbol{\alpha} \in \mathbb{R}^n$ is the portfolio weight vector and $\hat{\boldsymbol{\Sigma}} \in \mathbb{R}^{n \times n}$ is the estimated sample covariance matrix. The long-only constraint eliminates short positions, which reduces sensitivity to estimation error in the covariance matrix and is consistent with a typical institutional mandate.
 
-The problem is implemented using the CVXPY modelling library with the CLARABEL solver (Diamond and Boyd, 2016). For universes of 800 to 1,150 assets, each annual solve completes in under one second. The resulting portfolios are sparse: across the 12 formation years, between 24 and 42 firms receive non-zero weight. This concentration is typical of long-only minimum-variance solutions applied to large universes without additional diversification constraints.
+The problem is implemented using the CVXPY modelling library with the CLARABEL solver (CVXPY: Diamond and Boyd, 2016; CLARABEL: Goulart and Chen, 2023). For universes of 800 to 1,150 assets, each annual solve completes in under one second. The resulting portfolios are sparse: across the 12 formation years, between 24 and 42 firms receive non-zero weight. This concentration is typical of long-only minimum-variance solutions applied to large universes without additional diversification constraints.
 
 ### 3.4 Value-Weighted Benchmark
 
@@ -252,9 +252,13 @@ The VW50 portfolio is the central practical result of this project. Table 5 summ
 | Avg. CF (tCO2/m$) | 116.2 | 57.7 | -50.3% |
 | Avg. WACI (tCO2/m$ rev.) | 168.0 | 85.5 | -49.1% |
 
-The annual return falls from 11.45% to 10.73%, a cost of approximately 72 basis points. The Sharpe ratio falls from 0.680 to 0.621. Volatility increases marginally by 18 basis points, as the carbon constraint shifts some weight away from large, well-diversified holdings toward firms with slightly higher specific risk. In exchange, the average carbon footprint is halved from 116.2 to 57.7 tCO2/m$, and the WACI is nearly halved from 168.0 to 85.5.
+The annual return falls from 11.45% to 10.73%, a difference of approximately 72 basis points. This gap should be read carefully: the VW benchmark rebalances monthly, while the VW50 is formed annually and held with buy-and-hold drift within each year. Part of the performance difference may therefore reflect the change in rebalancing frequency rather than the carbon constraint alone; without an unconstrained annual-formation VW baseline, the two effects cannot be separated. The Sharpe ratio falls from 0.680 to 0.621. Volatility increases marginally by 18 basis points. In exchange, the average carbon footprint is halved from 116.2 to 57.7 tCO2/m$, and the WACI is nearly halved from 168.0 to 85.5.
 
-For investors subject to EU SFDR obligations, TCFD reporting requirements, or internal net-zero commitments, 72 basis points per year for a 50% reduction in financed emissions is a manageable cost. The VW50 stays structurally close to the VW benchmark — it minimises tracking error — so it does not take large active bets outside the carbon objective. It is the most defensible climate-aware strategy in this exercise.
+The tracking error of the VW50 relative to the VW benchmark is near-zero across all 12 formation years. This is a genuine finding rather than a numerical artefact: with 800 to 1,150 stocks in the eligible universe, each individually high-carbon firm accounts for less than 1.5% of total market capitalisation. Removing these names and redistributing their weight across hundreds of lower-carbon stocks changes the portfolio composition by very little, so the tracking-error objective is nearly fully satisfied by this marginal reweighting.
+
+One tail-risk consideration is worth noting: the VW50's worst monthly return is -15.05%, materially worse than the VW benchmark's -13.20%. An annually formed portfolio cannot rebalance ahead of a market stress event, which can cause the portfolio to diverge further from its target weights during sharp drawdowns.
+
+For investors subject to EU SFDR obligations, TCFD reporting requirements, or internal net-zero commitments, the measured return difference of around 72 basis points per year — an upper bound on the carbon cost — for a 50% reduction in financed emissions is a manageable cost. The VW50 stays structurally close to the VW benchmark — it minimises tracking error — so it does not take large active bets outside the carbon objective. It is the most defensible climate-aware strategy in this exercise.
 
 *(Figure 4: `outputs/figures/cum_vw_variants.png`)*
 
@@ -285,7 +289,7 @@ The full performance and carbon summary for all five portfolios is in Table 6.
 
 ## 6. Discussion
 
-The main finding of this project is that a 50% reduction in carbon footprint relative to the VW benchmark is achievable at a financial cost of around 72 basis points of annual return. For most institutional investors today, this is a limited and defensible price for a clearly measured carbon outcome. This result is specific to the AMER+EUR universe and the 2014 to 2025 period, but it is consistent with the broader literature suggesting that carbon constraints applied to large and well-diversified universes tend to have modest financial consequences (Andersson et al., 2016).
+The main finding of this project is that a 50% reduction in carbon footprint relative to the VW benchmark is achievable at a measured annual return difference of around 72 basis points. This figure should be qualified: the VW benchmark rebalances monthly while the VW50 forms annually, and the rebalancing frequency change contributes to the performance gap alongside the carbon constraint. The true cost of the carbon constraint alone is therefore likely lower than 72 basis points. Subject to this caveat, for most institutional investors today this is a limited and defensible price for a clearly measured carbon outcome. This result is specific to the AMER+EUR universe and the 2014 to 2025 period, but it is consistent with the broader literature suggesting that carbon constraints applied to large and well-diversified universes tend to have modest financial consequences (Andersson et al., 2016).
 
 A secondary finding concerns the relationship between minimum-variance investing and carbon exposure. In this universe, the MVP's carbon footprint and WACI are both higher than the VW benchmark's. This is not a dramatic difference — the MVP's CF is 28% above the VW — but it is directionally clear. Minimum-variance investing, as implemented here, tends to concentrate weight on a small number of low-volatility stocks that are not systematically low-carbon. Investors should not assume that variance minimisation is a substitute for an explicit carbon constraint.
 
@@ -305,6 +309,8 @@ The comparison between VW50 and VWNZ illustrates an important design considerati
 
 **No transaction costs.** The analysis ignores transaction costs. Annual reoptimisation generates turnover, particularly for the VWNZ in later years as the carbon budget tightens. In practice, round-trip transaction costs would reduce but not reverse the main conclusions, particularly for the VW50, where the carbon constraint is static from year to year.
 
+**Rebalancing frequency confound.** The VW benchmark is rebalanced monthly, while the VW50 and VWNZ portfolios are formed annually and held with buy-and-hold drift. The 72 basis-point annual return gap between VW and VW50 therefore combines the effect of the carbon constraint with the effect of less frequent rebalancing. Without an unconstrained annual-formation VW baseline, the contribution of each factor cannot be isolated. The true cost of the carbon constraint alone is likely smaller than 72 basis points.
+
 **Single sample period.** The results cover one 12-year window, which was unusual in several respects: a sustained US technology rally and a general trend of market-level decarbonisation. The VW outperformed the MVP strongly in this environment, and the VW benchmark's own declining carbon footprint made the VWNZ constraint progressively less binding. Results from a different period — particularly one with weaker technology returns or rising utility valuations — could look meaningfully different.
 
 **No statistical tests.** Performance differences are not tested for statistical significance. With a single non-overlapping 12-year sample, formal tests would have limited power. All comparisons should be read as descriptive.
@@ -321,7 +327,7 @@ The first main finding is that the VW benchmark substantially outperforms the MV
 
 The second finding is that minimum-variance investing does not reduce carbon exposure in this universe. The MVP's average carbon footprint of 149.1 tCO2/m$ is approximately 28% above the VW benchmark's 116.2, and its WACI of 290.0 is 73% above the benchmark's 168.0. These results show that variance minimisation and carbon reduction are distinct objectives. If carbon reduction is a goal, an explicit constraint is required.
 
-The third and most practically useful finding concerns the VW50. A 50% carbon footprint constraint applied within a tracking-error-minimising framework reduced the average carbon footprint from 116.2 to 57.7 tCO2/m$ at a financial cost of approximately 72 basis points of annual return. The Sharpe ratio fell from 0.680 to 0.621. This trade-off is the central result: a large, clearly defined carbon reduction at a limited and defensible financial cost.
+The third and most practically useful finding concerns the VW50. A 50% carbon footprint constraint applied within a tracking-error-minimising framework reduced the average carbon footprint from 116.2 to 57.7 tCO2/m$ at an observed annual return difference of approximately 72 basis points — an upper bound on the carbon constraint cost, since the VW50's annual formation is not directly comparable to the VW benchmark's monthly rebalancing. The Sharpe ratio fell from 0.680 to 0.621. This trade-off is the central result: a large, clearly defined carbon reduction at a limited and defensible financial cost.
 
 The fourth finding concerns net-zero mandate design. The VWNZ portfolio, which anchors its carbon budget to a 2013 baseline, delivered similar financial performance to VW50 but a meaningfully higher average carbon footprint. As the VW benchmark itself decarbonised over the sample period, the historically anchored constraint became progressively less restrictive than the current-benchmark 50% constraint. Investors implementing net-zero mandates need to be precise about their reference point: a fixed historical anchor becomes less ambitious over time in a decarbonising market.
 
@@ -339,6 +345,8 @@ Andersson, M., Bolton, P., and Samama, F. (2016). Hedging climate risk. *Financi
 
 Diamond, S., and Boyd, S. (2016). CVXPY: A Python-embedded modeling language for convex optimization. *Journal of Machine Learning Research*, 17(83), 1-5.
 
+Goulart, P., and Chen, Y. (2023). CLARABEL: An interior-point solver for conic programs with quadratic objectives. *arXiv preprint arXiv:2304.06271*.
+
 Gourier, E., Jondeau, E., and Rockinger, M. (2024). *Sustainable Asset Allocation and Management: Course Notes*. HEC Lausanne.
 
 GHG Protocol (2015). *Corporate Value Chain (Scope 3) Accounting and Reporting Standard*. World Resources Institute and World Business Council for Sustainable Development.
@@ -355,8 +363,8 @@ TCFD (2017). *Recommendations of the Task Force on Climate-related Financial Dis
 
 | Year | Eligible firms |
 |---|---|
-| 2013 | 812 |
-| 2014 | 841 |
+| 2013 | 813 |
+| 2014 | 842 |
 | 2015 | 876 |
 | 2016 | 900 |
 | 2017 | 932 |

@@ -28,7 +28,7 @@
 
 ### Three results that matter for clients
 
-**72 bps for -50% carbon.** The VW(50%) portfolio halves the benchmark carbon footprint at a return cost of 72 basis points per year. Tracking error to the benchmark remains modest because the optimisation explicitly minimises it. This is the proposed strategy for carbon-sensitive mandates.
+**72 bps for -50% carbon.** The VW(50%) portfolio halves the benchmark carbon footprint at a return difference of 72 basis points per year. Tracking error to the benchmark is near-zero because the optimisation explicitly minimises it. Note that part of this gap reflects the VW50's annual formation versus the benchmark's monthly rebalancing; the carbon constraint cost alone is likely lower. One tail-risk consideration: the VW50's worst monthly return was -15.05%, versus -13.20% for the benchmark — annual formation cannot rebalance ahead of market shocks. This is the proposed strategy for carbon-sensitive mandates.
 
 **Minimum variance is not a carbon strategy.** The unconstrained MVP has a carbon footprint approximately 28% above the VW benchmark (149 vs 116 tCO2/m$) and a weighted-average carbon intensity well above the benchmark (290 vs 168). The MVP concentrates on stocks with stable, low-volatility earnings, which are not systematically low-carbon in this universe. An explicit carbon constraint is the only reliable way to reduce financed emissions.
 
